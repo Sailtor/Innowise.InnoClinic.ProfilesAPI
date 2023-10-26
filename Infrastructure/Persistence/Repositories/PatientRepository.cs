@@ -13,10 +13,12 @@ namespace Persistence.Repositories
         {
             return await _dbContext.Profiles.OfType<Patient>().ToListAsync(cancellationToken);
         }
+
         public async Task<Patient> GetByIdAsync(Guid accountId, CancellationToken cancellationToken = default)
         {
             return await _dbContext.Profiles.OfType<Patient>().FirstOrDefaultAsync(x => x.Id == accountId, cancellationToken);
         }
+
         public void Update(Patient account, CancellationToken cancellationToken = default)
         {
             _dbContext.Profiles.Update(account);

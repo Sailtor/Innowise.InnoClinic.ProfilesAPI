@@ -20,12 +20,14 @@ namespace Services
             _mapper = mapper;
             _validatorManager = validatorManager;
         }
+
         public async Task<IEnumerable<ReceptionistForResponseDto>> GetAllAsync(CancellationToken cancellationToken = default)
         {
             var receptionists = await _repositoryManager.ReceptionistRepository.GetAllAsync(cancellationToken);
             var receptionistsDto = _mapper.Map<IEnumerable<ReceptionistForResponseDto>>(receptionists);
             return receptionistsDto;
         }
+
         public async Task<ReceptionistForResponseDto> GetByIdAsync(Guid receptionistId, CancellationToken cancellationToken = default)
         {
             var receptionist = await _repositoryManager.ReceptionistRepository.GetByIdAsync(receptionistId, cancellationToken);
@@ -36,6 +38,7 @@ namespace Services
             var receptionistDto = _mapper.Map<ReceptionistForResponseDto>(receptionist);
             return receptionistDto;
         }
+
         public async Task<ReceptionistForResponseDto> CreateAsync(ReceptionistForCreationDto receptionistForCreationDto, CancellationToken cancellationToken = default)
         {
             _validatorManager.ReceptionistCreationValidator.ValidateAndThrowCustom(receptionistForCreationDto);
@@ -44,6 +47,7 @@ namespace Services
             await _repositoryManager.UnitOfWork.SaveChangesAsync(cancellationToken);
             return _mapper.Map<ReceptionistForResponseDto>(receptionist);
         }
+
         public async Task UpdateAsync(Guid receptionistId, ReceptionistForUpdateDto receptionistForUpdateDto, CancellationToken cancellationToken = default)
         {
             _validatorManager.ReceptionistUpdateValidator.ValidateAndThrowCustom(receptionistForUpdateDto);
@@ -55,6 +59,7 @@ namespace Services
             _mapper.Map(receptionistForUpdateDto, receptionist);
             await _repositoryManager.UnitOfWork.SaveChangesAsync(cancellationToken);
         }
+
         public async Task DeleteAsync(Guid receptionistId, CancellationToken cancellationToken = default)
         {
             var receptionist = await _repositoryManager.ReceptionistRepository.GetByIdAsync(receptionistId, cancellationToken);

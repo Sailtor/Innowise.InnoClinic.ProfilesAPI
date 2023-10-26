@@ -5,6 +5,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Any;
 using Microsoft.OpenApi.Models;
 using Persistence;
+using Presentation.Data;
 using Services;
 using Services.Abstractions;
 using System.Security.Claims;
@@ -73,18 +74,20 @@ namespace InnoClinic.ProfilesAPI.Extensions
                 {
                     policy.RequireAssertion(context =>
                     {
-                        var userId = context.User.FindFirstValue("sub");
-                        var routeId = new HttpContextAccessor().HttpContext.Request.RouteValues["userid"].ToString();
-                        return userId == routeId || context.User.IsInRole("Receptionist");
+                        var userId = context.User.FindFirstValue(UserClaims.UserId);
+                        var routeId = new HttpContextAccessor().HttpContext.Request.RouteValues[QueryRouteValues.PatientId].ToString();
+                        routeId ??= new HttpContextAccessor().HttpContext.Request.RouteValues[QueryRouteValues.DoctorId].ToString();
+                        return userId == routeId || context.User.IsInRole(UserRoles.Receptionist);
                     });
                 });
                 opts.AddPolicy("OwnerOrDoctorOrReceptionist", policy =>
                 {
                     policy.RequireAssertion(context =>
                     {
-                        var userId = context.User.FindFirstValue("sub");
-                        var routeId = new HttpContextAccessor().HttpContext.Request.RouteValues["userid"].ToString();
-                        return userId == routeId || context.User.IsInRole("Receptionist") || context.User.IsInRole("Doctor");
+                        var userId = context.User.FindFirstValue(UserClaims.UserId);
+                        var routeId = new HttpContextAccessor().HttpContext.Request.RouteValues[QueryRouteValues.PatientId].ToString();
+                        routeId ??= new HttpContextAccessor().HttpContext.Request.RouteValues[QueryRouteValues.DoctorId].ToString();
+                        return userId == routeId || context.User.IsInRole(UserRoles.Receptionist) || context.User.IsInRole(UserRoles.Doctor);
                     });
                 });
 

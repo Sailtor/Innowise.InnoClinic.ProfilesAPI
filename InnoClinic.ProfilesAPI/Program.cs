@@ -20,6 +20,7 @@ try
     builder.Services.ConfigureAutomapper();
     builder.Services.CofigureAuthorization();
     builder.Services.ConfigureOwnerAuthZPolicies();
+    builder.Services.ConfigureRabbitMQConsumer();
 
     var app = builder.Build();
 

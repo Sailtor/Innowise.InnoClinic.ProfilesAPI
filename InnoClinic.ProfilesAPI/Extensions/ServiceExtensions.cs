@@ -1,6 +1,7 @@
 ﻿using Domain.Repositories;
 using InnoClinic.ProfilesAPI.Converters;
 using InnoClinic.ProfilesAPI.Middleware.Exception_Handler;
+using MessageBus;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Any;
 using Microsoft.OpenApi.Models;
@@ -55,6 +56,10 @@ namespace InnoClinic.ProfilesAPI.Extensions
         public static void ConfigureAutomapper(this IServiceCollection services)
         {
             services.AddAutoMapper(typeof(Services.AssemblyReference).Assembly);
+        }
+        public static void ConfigureRabbitMQConsumer(this IServiceCollection services)
+        {
+            services.AddHostedService<RabbitMqServicesListener>();
         }
         public static void CofigureAuthorization(this IServiceCollection services)
         {

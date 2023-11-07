@@ -21,7 +21,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Services", "Core\Services\S
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Services.Abstractions", "Core\Services.Abstractions\Services.Abstractions.csproj", "{FBA83F2F-D050-4434-8E75-D0EB2EC22410}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MessageBus", "Infrastructure\MessageBus\MessageBus.csproj", "{2724338C-7D55-4C03-8B66-E4747AD391A3}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MessageBus", "Infrastructure\MessageBus\MessageBus.csproj", "{2724338C-7D55-4C03-8B66-E4747AD391A3}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Shared", "Infrastructure\Shared\Shared.csproj", "{1A1D4023-FE65-4F72-BACA-1E7436A59F65}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -61,6 +63,10 @@ Global
 		{2724338C-7D55-4C03-8B66-E4747AD391A3}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{2724338C-7D55-4C03-8B66-E4747AD391A3}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{2724338C-7D55-4C03-8B66-E4747AD391A3}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1A1D4023-FE65-4F72-BACA-1E7436A59F65}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1A1D4023-FE65-4F72-BACA-1E7436A59F65}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1A1D4023-FE65-4F72-BACA-1E7436A59F65}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1A1D4023-FE65-4F72-BACA-1E7436A59F65}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -73,6 +79,7 @@ Global
 		{BFF97676-F364-47DA-B032-6ACFD1B18F2B} = {C301B680-8D03-47E1-B903-B336FAD45A01}
 		{FBA83F2F-D050-4434-8E75-D0EB2EC22410} = {C301B680-8D03-47E1-B903-B336FAD45A01}
 		{2724338C-7D55-4C03-8B66-E4747AD391A3} = {E94A1712-F9E0-403D-BFA7-31539BD05CF9}
+		{1A1D4023-FE65-4F72-BACA-1E7436A59F65} = {E94A1712-F9E0-403D-BFA7-31539BD05CF9}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {1257ADFE-9DDA-491E-80C1-2F197F217AD9}

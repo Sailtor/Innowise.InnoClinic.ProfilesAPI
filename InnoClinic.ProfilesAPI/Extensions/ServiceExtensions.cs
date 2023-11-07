@@ -1,6 +1,7 @@
 ﻿using Domain.Repositories;
 using InnoClinic.ProfilesAPI.Converters;
 using InnoClinic.ProfilesAPI.Middleware.Exception_Handler;
+using MassTransit;
 using MessageBus;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Any;
@@ -9,6 +10,7 @@ using Persistence;
 using Presentation.Data;
 using Services;
 using Services.Abstractions;
+using System.Reflection;
 using System.Security.Claims;
 
 namespace InnoClinic.ProfilesAPI.Extensions
@@ -59,7 +61,18 @@ namespace InnoClinic.ProfilesAPI.Extensions
         }
         public static void ConfigureRabbitMQConsumer(this IServiceCollection services)
         {
+            //Services API queue
             services.AddHostedService<RabbitMqServicesListener>();
+            //Offices API queue
+            services.AddMassTransit(busConfigurator =>
+            {
+                var entryAssembly = typeof(Infrastructure.MessageBus.AssemblyReference).Assembly;
+                busConfigurator.AddConsumers(entryAssembly);
+                busConfigurator.UsingRabbitMq((context, busFactoryConfigurator) =>
+                {
+                    busFactoryConfigurator.ConfigureEndpoints(context);
+                });
+            });
         }
         public static void CofigureAuthorization(this IServiceCollection services)
         {

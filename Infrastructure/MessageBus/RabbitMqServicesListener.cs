@@ -1,22 +1,16 @@
-﻿using Domain.Entities;
-using Domain.Repositories;
-using Infrastructure.MessageBus;
+﻿using Domain.Repositories;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Newtonsoft.Json;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
-using Services.Abstractions;
-using System.Text;
-using System.Threading.Channels;
 
 namespace MessageBus
 {
     public class RabbitMqServicesListener : BackgroundService
     {
-        private IConnection _connection;
-        private IModel _channel;
+        private readonly IConnection _connection;
+        private readonly IModel _channel;
         private readonly string _queueName;
         private readonly string _hostName;
         private readonly IServiceProvider _serviceProvider;

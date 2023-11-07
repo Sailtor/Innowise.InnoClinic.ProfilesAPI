@@ -1,4 +1,4 @@
-﻿namespace Infrastructure.MessageBus
+﻿namespace MessageBus
 {
     public class AssemblyReference
     {

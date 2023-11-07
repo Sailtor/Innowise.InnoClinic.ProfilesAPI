@@ -1,4 +1,4 @@
-﻿namespace Infrastructure.Shared
+﻿namespace Shared
 {
     public class OfficeStatusChanged
     {

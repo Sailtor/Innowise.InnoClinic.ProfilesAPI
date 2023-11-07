@@ -2,7 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
-namespace Persistence
+namespace Persistence.Configurations
 {
     internal sealed class PatientProfileConfiguration : IEntityTypeConfiguration<Patient>
     {

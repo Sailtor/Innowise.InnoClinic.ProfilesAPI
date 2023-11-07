@@ -1,8 +1,6 @@
 ﻿using Domain.Repositories;
-using Persistence;
-using Persistence.Repositories;
 
-namespace Services
+namespace Persistence.Repositories
 {
     public sealed class RepositoryManager : IRepositoryManager
     {

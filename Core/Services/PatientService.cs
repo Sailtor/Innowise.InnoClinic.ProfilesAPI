@@ -1,10 +1,10 @@
 ﻿using AutoMapper;
-using BLL.Infrastructure.Validators;
 using Contracts.PatientDto;
 using Domain.Entities;
 using Domain.Exceptions;
 using Domain.Repositories;
 using Services.Abstractions;
+using Services.FluentValidation;
 
 namespace Services
 {

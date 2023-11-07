@@ -1,5 +1,6 @@
 ﻿using Domain.Repositories;
 using InnoClinic.ProfilesAPI.Converters;
+using InnoClinic.ProfilesAPI.Data;
 using InnoClinic.ProfilesAPI.Middleware.Exception_Handler;
 using MassTransit;
 using MessageBus;
@@ -7,10 +8,9 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Any;
 using Microsoft.OpenApi.Models;
 using Persistence;
-using Presentation.Data;
+using Persistence.Repositories;
 using Services;
 using Services.Abstractions;
-using System.Reflection;
 using System.Security.Claims;
 
 namespace InnoClinic.ProfilesAPI.Extensions
@@ -20,7 +20,6 @@ namespace InnoClinic.ProfilesAPI.Extensions
         public static void ConfigureControllers(this IServiceCollection services)
         {
             services.AddControllers()
-                .AddApplicationPart(typeof(Presentation.AssemblyReference).Assembly)
                 .AddJsonOptions(options =>
                 {
                     options.JsonSerializerOptions.Converters.Add(new DateOnlyJsonConverter());
@@ -66,7 +65,7 @@ namespace InnoClinic.ProfilesAPI.Extensions
             //Offices API queue
             services.AddMassTransit(busConfigurator =>
             {
-                var entryAssembly = typeof(Infrastructure.MessageBus.AssemblyReference).Assembly;
+                var entryAssembly = typeof(MessageBus.AssemblyReference).Assembly;
                 busConfigurator.AddConsumers(entryAssembly);
                 busConfigurator.UsingRabbitMq((context, busFactoryConfigurator) =>
                 {

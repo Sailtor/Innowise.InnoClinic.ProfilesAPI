@@ -1,4 +1,4 @@
-﻿namespace Presentation.Data
+﻿namespace InnoClinic.ProfilesAPI.Data
 {
     public static class UserClaims
     {

@@ -1,11 +1,11 @@
 ﻿using Contracts.DoctorDto;
 using Domain.Entities;
+using InnoClinic.ProfilesAPI.Data;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Presentation.Data;
 using Services.Abstractions;
 
-namespace Presentation.Controllers
+namespace InnoClinic.ProfilesAPI.Controllers
 {
     [ApiController]
     [Route("api/doctors")]

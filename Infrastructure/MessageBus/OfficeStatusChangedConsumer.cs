@@ -1,11 +1,11 @@
 ﻿using Domain.Entities;
 using Domain.Repositories;
-using Infrastructure.Shared;
 using MassTransit;
 using Newtonsoft.Json;
+using Shared;
 using System.Text.Json;
 
-namespace Infrastructure.MessageBus
+namespace MessageBus
 {
     public class NotificationCreatedConsumer : IConsumer<OfficeStatusChanged>
     {

@@ -1,10 +1,14 @@
 ﻿using Domain.Repositories;
 using InnoClinic.ProfilesAPI.Converters;
+using InnoClinic.ProfilesAPI.Data;
 using InnoClinic.ProfilesAPI.Middleware.Exception_Handler;
+using MassTransit;
+using MessageBus;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Any;
 using Microsoft.OpenApi.Models;
 using Persistence;
+using Persistence.Repositories;
 using Services;
 using Services.Abstractions;
 using System.Security.Claims;
@@ -16,7 +20,6 @@ namespace InnoClinic.ProfilesAPI.Extensions
         public static void ConfigureControllers(this IServiceCollection services)
         {
             services.AddControllers()
-                .AddApplicationPart(typeof(Presentation.AssemblyReference).Assembly)
                 .AddJsonOptions(options =>
                 {
                     options.JsonSerializerOptions.Converters.Add(new DateOnlyJsonConverter());
@@ -55,6 +58,21 @@ namespace InnoClinic.ProfilesAPI.Extensions
         {
             services.AddAutoMapper(typeof(Services.AssemblyReference).Assembly);
         }
+        public static void ConfigureRabbitMQConsumer(this IServiceCollection services)
+        {
+            //Services API queue
+            services.AddHostedService<RabbitMqServicesListener>();
+            //Offices API queue
+            services.AddMassTransit(busConfigurator =>
+            {
+                var entryAssembly = typeof(MessageBus.AssemblyReference).Assembly;
+                busConfigurator.AddConsumers(entryAssembly);
+                busConfigurator.UsingRabbitMq((context, busFactoryConfigurator) =>
+                {
+                    busFactoryConfigurator.ConfigureEndpoints(context);
+                });
+            });
+        }
         public static void CofigureAuthorization(this IServiceCollection services)
         {
             services.AddAuthentication("Bearer")
@@ -73,18 +91,20 @@ namespace InnoClinic.ProfilesAPI.Extensions
                 {
                     policy.RequireAssertion(context =>
                     {
-                        var userId = context.User.FindFirstValue("sub");
-                        var routeId = new HttpContextAccessor().HttpContext.Request.RouteValues["userid"].ToString();
-                        return userId == routeId || context.User.IsInRole("Receptionist");
+                        var userId = context.User.FindFirstValue(UserClaims.UserId);
+                        var routeId = new HttpContextAccessor().HttpContext.Request.RouteValues[QueryRouteValues.PatientId].ToString();
+                        routeId ??= new HttpContextAccessor().HttpContext.Request.RouteValues[QueryRouteValues.DoctorId].ToString();
+                        return userId == routeId || context.User.IsInRole(UserRoles.Receptionist);
                     });
                 });
                 opts.AddPolicy("OwnerOrDoctorOrReceptionist", policy =>
                 {
                     policy.RequireAssertion(context =>
                     {
-                        var userId = context.User.FindFirstValue("sub");
-                        var routeId = new HttpContextAccessor().HttpContext.Request.RouteValues["userid"].ToString();
-                        return userId == routeId || context.User.IsInRole("Receptionist") || context.User.IsInRole("Doctor");
+                        var userId = context.User.FindFirstValue(UserClaims.UserId);
+                        var routeId = new HttpContextAccessor().HttpContext.Request.RouteValues[QueryRouteValues.PatientId].ToString();
+                        routeId ??= new HttpContextAccessor().HttpContext.Request.RouteValues[QueryRouteValues.DoctorId].ToString();
+                        return userId == routeId || context.User.IsInRole(UserRoles.Receptionist) || context.User.IsInRole(UserRoles.Doctor);
                     });
                 });
 

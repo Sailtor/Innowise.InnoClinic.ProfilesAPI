@@ -1,5 +1,6 @@
 ﻿using Contracts.ProfileDto;
 using FluentValidation;
+using Services.Data;
 
 namespace Services.FluentValidation.Validators.UpdateDto
 {
@@ -10,9 +11,10 @@ namespace Services.FluentValidation.Validators.UpdateDto
             ClassLevelCascadeMode = CascadeMode.Stop;
             RuleFor(p => p.Name).NotEmpty().Length(2, 1024).WithErrorCode("Invalid first name");
             RuleFor(p => p.LastName).NotEmpty().Length(2, 1024).WithErrorCode("Invalid last name");
-            RuleFor(p => p.MiddleName).Length(2, 1024).Unless(p => string.IsNullOrEmpty(p.MiddleName)).WithErrorCode("invalid middle name");
+            RuleFor(p => p.MiddleName).Length(2, 1024).Unless(p => string.IsNullOrEmpty(p.MiddleName)).WithErrorCode("Invalid middle name");
             RuleFor(p => p.PhotoId).Must(ValidateGuid).Unless(p => p.PhotoId is null).WithErrorCode("Invalid photoId");
         }
+
         protected bool ValidateGuid(Guid? unvalidatedGuid)
         {
             if (unvalidatedGuid != Guid.Empty)
@@ -24,6 +26,7 @@ namespace Services.FluentValidation.Validators.UpdateDto
             }
             return false;
         }
+
         //Duct tape for not nullable guids
         protected bool ValidateGuid(Guid unvalidatedGuid)
         {
@@ -36,13 +39,14 @@ namespace Services.FluentValidation.Validators.UpdateDto
             }
             return false;
         }
+
         //Age validation for doctor and patient profiles
         protected bool BeAValidAge(DateOnly date)
         {
-            int currentYear = DateTime.Now.Year;
+            int currentYear = DateTime.UtcNow.Year;
             int dobYear = date.Year;
 
-            if (dobYear <= currentYear && dobYear > currentYear - 130)
+            if (dobYear <= currentYear && dobYear > currentYear - AllowedAge.Max)
             {
                 return true;
             }

@@ -1,10 +1,10 @@
 ﻿using Contracts.ReceptionistDto;
+using InnoClinic.ProfilesAPI.Data;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Presentation.Data;
 using Services.Abstractions;
 
-namespace Presentation.Controllers
+namespace InnoClinic.ProfilesAPI.Controllers
 {
     [Authorize(Roles = UserRoles.Receptionist)]
     [ApiController]

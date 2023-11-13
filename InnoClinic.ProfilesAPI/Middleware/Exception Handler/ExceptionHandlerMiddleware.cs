@@ -37,7 +37,6 @@ namespace InnoClinic.ProfilesAPI.Middleware.Exception_Handler
             {
                 DbUpdateException => (int)HttpStatusCode.BadRequest,
                 SecurityTokenSignatureKeyNotFoundException => (int)HttpStatusCode.Unauthorized,
-                ObjectDisposedException => (int)HttpStatusCode.NotImplemented, //idfk what am I doing
                 ValidationException => (int)HttpStatusCode.BadRequest,
                 ProfileNotFoundException => (int)HttpStatusCode.NotFound,
                 _ => (int)HttpStatusCode.InternalServerError
@@ -48,7 +47,6 @@ namespace InnoClinic.ProfilesAPI.Middleware.Exception_Handler
                 {
                     DbUpdateException => "Invalid database operation (are you trying to create existing resource?)",
                     SecurityTokenSignatureKeyNotFoundException => "Invalid authorization token",
-                    ObjectDisposedException => "WTF IS OBJECT DISPOSED EXCEPTION",
                     ValidationException => "Invalid model",
                     ProfileNotFoundException => "Profile not found",
                     _ => "Internal server error"

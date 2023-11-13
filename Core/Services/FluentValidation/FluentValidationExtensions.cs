@@ -1,6 +1,6 @@
 ﻿using FluentValidation;
 
-namespace BLL.Infrastructure.Validators
+namespace Services.FluentValidation
 {
     internal static class FluentValidationExtensions
     {

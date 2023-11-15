@@ -4,8 +4,10 @@ using Domain.Entities;
 using Domain.Exceptions;
 using Domain.Repositories;
 using FluentValidation;
+using MassTransit;
 using Services.Abstractions;
 using Services.FluentValidation;
+using Shared;
 
 namespace Services
 {
@@ -14,12 +16,18 @@ namespace Services
         private readonly IRepositoryManager _repositoryManager;
         private readonly IMapper _mapper;
         private readonly IValidatorManager _validatorManager;
+        private readonly IPublishEndpoint _publishEndpoint;
 
-        public DoctorService(IRepositoryManager repositoryManager, IMapper mapper, IValidatorManager validatorManager)
+        public DoctorService(
+            IRepositoryManager repositoryManager,
+            IMapper mapper,
+            IValidatorManager validatorManager,
+            IPublishEndpoint publishEndpoint)
         {
             _repositoryManager = repositoryManager;
             _mapper = mapper;
             _validatorManager = validatorManager;
+            _publishEndpoint = publishEndpoint;
         }
 
         public async Task<IEnumerable<DoctorForResponseDto>> GetAllAsync(CancellationToken cancellationToken = default)
@@ -59,6 +67,14 @@ namespace Services
             }
             _mapper.Map(doctorForUpdateDto, doctor);
             await _repositoryManager.UnitOfWork.SaveChangesAsync(cancellationToken);
+
+            await _publishEndpoint.Publish<DoctorNameChanged>(new
+            {
+                Id = doctorId,
+                Name = doctorForUpdateDto.Name,
+                Surname = doctorForUpdateDto.LastName,
+                Middlename = doctorForUpdateDto.MiddleName
+            });
         }
 
         public async Task ChangeDoctorStatusAsync(Guid doctorId, DoctorStatus status, CancellationToken cancellationToken = default)

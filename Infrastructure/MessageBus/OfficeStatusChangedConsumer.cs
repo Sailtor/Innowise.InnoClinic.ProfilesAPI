@@ -20,14 +20,12 @@ namespace MessageBus
         {
             var serializedMessage = System.Text.Json.JsonSerializer.Serialize(context.Message, new JsonSerializerOptions { });
             var messageObject = JsonConvert.DeserializeObject<OfficeStatusChanged>(serializedMessage);
-            var doctors = await _repositoryManager.DoctorRepository.GetAllAsync();
+
+            var doctors = await _repositoryManager.DoctorRepository.FindAsync(d => d.OfficeId == messageObject.Id);
             foreach (var doctor in doctors)
             {
-                if (doctor.OfficeId == messageObject.Id)
-                {
-                    doctor.Status = messageObject.IsActive ? DoctorStatus.AtWork : DoctorStatus.Inactive;
-                    _repositoryManager.DoctorRepository.Update(doctor);
-                }
+                doctor.Status = messageObject.IsActive ? DoctorStatus.AtWork : DoctorStatus.Inactive;
+                _repositoryManager.DoctorRepository.Update(doctor);
             }
             await _repositoryManager.UnitOfWork.SaveChangesAsync();
         }

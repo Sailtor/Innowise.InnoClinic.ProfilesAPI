@@ -14,15 +14,11 @@ namespace MessageBus
             var message = Encoding.UTF8.GetString(body);
             var specialization = JsonConvert.DeserializeObject<Specialization>(message);
 
-            var doctors = await _repositoryManager.DoctorRepository.GetAllAsync(cancellationToken);
+            var doctors = await _repositoryManager.DoctorRepository.FindAsync(d => d.SpecializationId == specialization.Id, cancellationToken);
             foreach (Doctor doctor in doctors)
             {
-                if (doctor.SpecializationId == specialization.Id)
-                {
-                    doctor.Status = specialization.IsActive ? DoctorStatus.AtWork : DoctorStatus.Inactive;
-                    _repositoryManager.DoctorRepository.Update(doctor, cancellationToken);
-                    Console.WriteLine(doctor);
-                }
+                doctor.Status = specialization.IsActive ? DoctorStatus.AtWork : DoctorStatus.Inactive;
+                _repositoryManager.DoctorRepository.Update(doctor, cancellationToken);
             }
             await _repositoryManager.UnitOfWork.SaveChangesAsync(cancellationToken);
         }

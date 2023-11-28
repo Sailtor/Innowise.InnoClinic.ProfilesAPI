@@ -7,6 +7,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\Infrastructure\Shared\Shared.csproj" />
     <ProjectReference Include="..\Contracts\Contracts.csproj" />
     <ProjectReference Include="..\Services.Abstractions\Services.Abstractions.csproj" />
   </ItemGroup>
@@ -14,6 +15,7 @@
   <ItemGroup>
     <PackageReference Include="AutoMapper" Version="12.0.1" />
     <PackageReference Include="FluentValidation" Version="11.8.0" />
+    <PackageReference Include="MassTransit" Version="8.1.1" />
   </ItemGroup>
 
 </Project>

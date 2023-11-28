@@ -1,6 +1,8 @@
 ﻿using Domain.Entities;
 using Domain.Repositories;
 using Microsoft.EntityFrameworkCore;
+using System.Linq;
+using System.Linq.Expressions;
 
 namespace Persistence.Repositories
 {
@@ -27,6 +29,11 @@ namespace Persistence.Repositories
         public async Task AddAsync(Doctor account)
         {
             await _dbContext.Profiles.AddAsync(account);
+        }
+
+        public async Task<IEnumerable<Doctor>> FindAsync(Expression<Func<Doctor, bool>> expression, CancellationToken cancellationToken = default)
+        {
+            return await _dbContext.Profiles.OfType<Doctor>().Where(expression).ToListAsync();
         }
     }
 }

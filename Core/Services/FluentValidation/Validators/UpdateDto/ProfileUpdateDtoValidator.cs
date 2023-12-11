@@ -46,7 +46,7 @@ namespace Services.FluentValidation.Validators.UpdateDto
             int currentYear = DateTime.UtcNow.Year;
             int dobYear = date.Year;
 
-            if (dobYear <= currentYear && dobYear > currentYear - AllowedAge.Max)
+            if (dobYear <= currentYear && dobYear >= currentYear - AllowedAge.Max)
             {
                 return true;
             }

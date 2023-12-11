@@ -3,9 +3,11 @@ using InnoClinic.ProfilesAPI.Data;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Services.Abstractions;
+using System.Diagnostics.CodeAnalysis;
 
 namespace InnoClinic.ProfilesAPI.Controllers
 {
+    [ExcludeFromCodeCoverage]
     [ApiController]
     [Route("api/patients")]
     public class PatientsController : ControllerBase

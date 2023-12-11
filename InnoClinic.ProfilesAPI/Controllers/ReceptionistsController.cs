@@ -3,9 +3,11 @@ using InnoClinic.ProfilesAPI.Data;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Services.Abstractions;
+using System.Diagnostics.CodeAnalysis;
 
 namespace InnoClinic.ProfilesAPI.Controllers
 {
+    [ExcludeFromCodeCoverage]
     [Authorize(Roles = UserRoles.Receptionist)]
     [ApiController]
     [Route("api/receptionists")]

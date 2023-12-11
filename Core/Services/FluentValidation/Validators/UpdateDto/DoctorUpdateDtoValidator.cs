@@ -11,7 +11,7 @@ namespace Services.FluentValidation.Validators.UpdateDto
             RuleFor(p => p.DateOfBirth).Must(BeAValidAge).WithErrorCode("Invalid age");
             RuleFor(p => p.SpecializationId).NotNull().Must(ValidateGuid).WithErrorCode("Invalid specialization ID");
             RuleFor(p => p.OfficeId).NotNull().Must(ValidateGuid).WithErrorCode("Invalid office ID");
-            RuleFor(p => p.CareerStartYear).GreaterThanOrEqualTo(p => p.DateOfBirth.Year + AllowedAge.Min).WithErrorCode("Invalid career start year");
+            RuleFor(p => p.CareerStartYear).GreaterThanOrEqualTo(p => p.DateOfBirth.Year + AllowedAge.Min).LessThanOrEqualTo(DateTime.UtcNow.Year).WithErrorCode("Invalid career start year");
         }
     }
 }

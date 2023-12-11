@@ -1,9 +1,9 @@
 ﻿using System.Runtime.CompilerServices;
 
 [assembly: InternalsVisibleTo("Tests")]
-namespace Services
+namespace Persistence
 {
-    public static class AssemblyReference
+    public class AssemblyReference
     {
     }
 }

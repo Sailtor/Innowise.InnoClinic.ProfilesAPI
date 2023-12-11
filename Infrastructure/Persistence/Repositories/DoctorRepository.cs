@@ -1,7 +1,6 @@
 ﻿using Domain.Entities;
 using Domain.Repositories;
 using Microsoft.EntityFrameworkCore;
-using System.Linq;
 using System.Linq.Expressions;
 
 namespace Persistence.Repositories

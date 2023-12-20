@@ -8,7 +8,7 @@ using Services.Data;
 
 namespace Tests.Infrastructure.Persistence.Repositories
 {
-    public class DoctorRepositoryTests : IDisposable
+    public class DoctorRepositoryTests
     {
         private readonly DbContextOptions<RepositoryDbContext> _contextOptions;
         public DoctorRepositoryTests()
@@ -37,9 +37,12 @@ namespace Tests.Infrastructure.Persistence.Repositories
             using (var context = new RepositoryDbContext(_contextOptions))
             {
                 DoctorRepository doctorRepository = new(context);
-                var recievedDoctors = await doctorRepository.GetAllAsync(cancellationToken: default);
+                var recievedDoctors = (await doctorRepository.GetAllAsync(cancellationToken: default)).ToList();
 
-                recievedDoctors.Count().Should().Be(3, "because we put 3 items in the collection");
+                recievedDoctors.Count.Should().Be(doctors.Count, "because we put 3 items in the collection");
+                recievedDoctors[0].Should().BeEquivalentTo(doctors[0]);
+                recievedDoctors[1].Should().BeEquivalentTo(doctors[1]);
+                recievedDoctors[2].Should().BeEquivalentTo(doctors[2]);
             }
         }
 
@@ -60,7 +63,8 @@ namespace Tests.Infrastructure.Persistence.Repositories
                 DoctorRepository doctorRepository = new(context);
                 var recievedDoctor = await doctorRepository.GetByIdAsync(doctorId, cancellationToken: default);
 
-                recievedDoctor.Should().NotBe(null, "because we put this doctor in the collection");
+                recievedDoctor.Should().NotBeNull("because we put this doctor in the collection");
+                recievedDoctor.Should().BeEquivalentTo(doctors[0]);
             }
         }
 
@@ -87,7 +91,7 @@ namespace Tests.Infrastructure.Persistence.Repositories
                 doctorRepository.Update(doctorForUpdate);
                 var updatedDoctor = await doctorRepository.GetByIdAsync(doctorForUpdate.Id);
 
-                updatedDoctor.Should().NotBe(null, "because we put doctor with this id in the collection");
+                updatedDoctor.Should().NotBeNull("because we put doctor with this id in the collection");
                 updatedDoctor.Name.Should().Be("TestName", "because we changed doctor name");
                 updatedDoctor.MiddleName.Should().Be("TestMiddlename", "because we changed doctor middlename");
                 updatedDoctor.LastName.Should().Be("TestLastName", "because we changed doctor last name");
@@ -112,9 +116,10 @@ namespace Tests.Infrastructure.Persistence.Repositories
                 DoctorRepository doctorRepository = new(context);
                 await doctorRepository.AddAsync(newDoctor.First());
                 await context.SaveChangesAsync();
-                var doctorsInRepository = await doctorRepository.GetAllAsync(cancellationToken: default);
+                var doctorsInRepository = (await doctorRepository.GetAllAsync(cancellationToken: default)).ToList();
 
-                doctorsInRepository.Count().Should().Be(4, "because we added new doctor to database");
+                doctorsInRepository.Count().Should().Be(doctors.Count + 1, "because we added new doctor to database");
+                doctorsInRepository[3].Should().BeEquivalentTo(newDoctor[0]);
             }
         }
 
@@ -136,18 +141,14 @@ namespace Tests.Infrastructure.Persistence.Repositories
             {
                 DoctorRepository doctorRepository = new(context);
                 var recievedDoctors = await doctorRepository.FindAsync(d => d.Status == DoctorStatus.AtWork, cancellationToken: default);
-                var doctorsInRepository = await doctorRepository.GetAllAsync(cancellationToken: default);
+                var doctorsInRepository = (await doctorRepository.GetAllAsync(cancellationToken: default)).ToList();
 
-                doctorsInRepository.Count().Should().Be(3, "because we added 3 doctors to database");
+                doctorsInRepository.Count.Should().Be(doctors.Count, "because we added 3 doctors to database");
                 recievedDoctors.Count().Should().Be(2, "because we added 2 doctors with AtWork status to database");
-            }
-        }
+                doctorsInRepository[0].Should().BeEquivalentTo(doctors[0]);
+                doctorsInRepository[1].Should().BeEquivalentTo(doctors[1]);
 
-        public void Dispose()
-        {
-            using var context = new RepositoryDbContext(_contextOptions);
-            context.Database.EnsureDeleted(); //ensure deleting db on every test
-            context.SaveChanges();
+            }
         }
 
         private static List<Doctor> GenerateRandomDoctors(int count)

@@ -8,7 +8,7 @@ using Services.Data;
 
 namespace Tests.Infrastructure.Persistence.Repositories
 {
-    public class PatientRepositoryTests : IDisposable
+    public class PatientRepositoryTests
     {
         private readonly DbContextOptions<RepositoryDbContext> _contextOptions;
         public PatientRepositoryTests()
@@ -37,9 +37,12 @@ namespace Tests.Infrastructure.Persistence.Repositories
             using (var context = new RepositoryDbContext(_contextOptions))
             {
                 PatientRepository patientRepository = new(context);
-                var recievedPatients = await patientRepository.GetAllAsync(cancellationToken: default);
+                var recievedPatients = (await patientRepository.GetAllAsync(cancellationToken: default)).ToList();
 
-                recievedPatients.Count().Should().Be(3, "because we put 3 patients in the collection");
+                recievedPatients.Count.Should().Be(patients.Count, "because we put 3 patients in the collection");
+                recievedPatients[0].Should().BeEquivalentTo(patients[0]);
+                recievedPatients[1].Should().BeEquivalentTo(patients[1]);
+                recievedPatients[2].Should().BeEquivalentTo(patients[2]);
             }
         }
 
@@ -60,7 +63,8 @@ namespace Tests.Infrastructure.Persistence.Repositories
                 PatientRepository patientRepository = new(context);
                 var recievedPatient = await patientRepository.GetByIdAsync(patientId, cancellationToken: default);
 
-                recievedPatient.Should().NotBe(null, "because we put this patient in the collection");
+                recievedPatient.Should().NotBeNull("because we put this patient in the collection");
+                recievedPatient.Should().BeEquivalentTo(patients[0]);
             }
         }
 
@@ -87,7 +91,7 @@ namespace Tests.Infrastructure.Persistence.Repositories
                 PatientRepository.Update(patientForUpdate);
                 var updatedPatient = await PatientRepository.GetByIdAsync(patientForUpdate.Id);
 
-                updatedPatient.Should().NotBe(null, "because we put patient with this id in the collection");
+                updatedPatient.Should().NotBeNull("because we put patient with this id in the collection");
                 updatedPatient.Name.Should().Be("TestName", "because we changed patient name");
                 updatedPatient.MiddleName.Should().Be("TestMiddlename", "because we changed patient middlename");
                 updatedPatient.LastName.Should().Be("TestLastName", "because we changed patient last name");
@@ -112,9 +116,10 @@ namespace Tests.Infrastructure.Persistence.Repositories
                 PatientRepository patientRepository = new(context);
                 await patientRepository.AddAsync(newPatient.First());
                 await context.SaveChangesAsync();
-                var patientsInRepository = await patientRepository.GetAllAsync(cancellationToken: default);
+                var patientsInRepository = (await patientRepository.GetAllAsync(cancellationToken: default)).ToList();
 
-                patientsInRepository.Count().Should().Be(4, "because we added new patient to database");
+                patientsInRepository.Count().Should().Be(patients.Count + 1, "because we added new patient to database");
+                patientsInRepository[3].Should().BeEquivalentTo(newPatient.First());
             }
         }
 
@@ -129,7 +134,7 @@ namespace Tests.Infrastructure.Persistence.Repositories
                 context.SaveChanges();
             }
 
-            var patientForRemoval = patients[1];
+            var patientForRemoval = patients[2];
 
             using (var context = new RepositoryDbContext(_contextOptions))
             {
@@ -137,17 +142,12 @@ namespace Tests.Infrastructure.Persistence.Repositories
 
                 patientRepository.Remove(patientForRemoval);
                 await context.SaveChangesAsync();
-                var patientsInRepository = await patientRepository.GetAllAsync(cancellationToken: default);
+                var patientsInRepository = (await patientRepository.GetAllAsync(cancellationToken: default)).ToList();
 
-                patientsInRepository.Count().Should().Be(2, "because we deleted 1 patient from database");
+                patientsInRepository.Count.Should().Be(patients.Count - 1, "because we deleted 1 patient from database");
+                patientsInRepository[0].Should().BeEquivalentTo(patients[0]);
+                patientsInRepository[1].Should().BeEquivalentTo(patients[1]);
             }
-        }
-
-        public void Dispose()
-        {
-            using var context = new RepositoryDbContext(_contextOptions);
-            context.Database.EnsureDeleted(); //ensure deleting db on every test
-            context.SaveChanges();
         }
 
         private static List<Patient> GenerateRandomPatients(int count)

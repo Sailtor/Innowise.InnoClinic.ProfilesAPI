@@ -29,44 +29,77 @@ namespace Tests.Core.Services.FluentValidation.Validators.CreateDto
             result.ShouldNotHaveAnyValidationErrors();
         }
 
-        [Theory, MemberData(nameof(InvalidPatients))]
-        public async Task Validate_WithInvalidModel_ShouldNotValidate(
-            string Name,
-            string LastName,
-            string Middlename,
-            Guid AccountId,
-            Guid PhotoId,
-            DateOnly DateOfBirth,
-            bool IsLinkedToAccount)
+        [Fact]
+        public async Task Validate_WithInvalidModel_ShouldNotValidate()
         {
-            var patient = new PatientForCreationDto()
+            PatientForCreationDto patient = new()
             {
-                Name = Name,
-                LastName = LastName,
-                MiddleName = Middlename,
-                AccountId = AccountId,
-                PhotoId = PhotoId,
-                DateOfBirth = DateOfBirth,
-                IsLinkedToAccount = IsLinkedToAccount,
+                Name = "",
+                LastName = "",
+                MiddleName = "m",
+                AccountId = Guid.Empty,
+                PhotoId = Guid.Empty,
+                DateOfBirth = DateOnly.FromDateTime(DateTime.UtcNow).AddYears(-1024)
             };
+
             var result = await _validator.TestValidateAsync(patient);
-            result.ShouldHaveAnyValidationError();
+
+            result.ShouldHaveValidationErrorFor(d => d.Name);
+            result.ShouldHaveValidationErrorFor(d => d.LastName);
+            result.ShouldHaveValidationErrorFor(d => d.MiddleName);
+            result.ShouldHaveValidationErrorFor(d => d.AccountId);
+            result.ShouldHaveValidationErrorFor(d => d.PhotoId);
+            result.ShouldHaveValidationErrorFor(d => d.DateOfBirth);
         }
 
-        public static IEnumerable<object?[]> InvalidPatients
+        [Fact]
+        public async Task Validate_WithInvalidAccountProperties_ShouldNotValidate()
         {
-            get
+            PatientForCreationDto patient = new()
             {
-                yield return new object[] { "", "TestLastname", "TestMiddlename", Guid.NewGuid(), Guid.NewGuid(), DateOnly.FromDateTime(DateTime.UtcNow).AddYears(-50), true };
-                yield return new object[] { "TestFirstName", "", "TestMiddlename", Guid.NewGuid(), Guid.NewGuid(), DateOnly.FromDateTime(DateTime.UtcNow).AddYears(-50), true };
-                yield return new object[] { "TestFirstName", "TestLastname", "", Guid.NewGuid(), Guid.NewGuid(), DateOnly.FromDateTime(DateTime.UtcNow).AddYears(-50), true };
-                yield return new object[] { "TestFirstName", "TestLastname", "TestMiddlename", Guid.Empty, Guid.NewGuid(), DateOnly.FromDateTime(DateTime.UtcNow).AddYears(-50), true };
-                yield return new object?[] { "TestFirstName", "TestLastname", "TestMiddlename", null, Guid.NewGuid(), DateOnly.FromDateTime(DateTime.UtcNow).AddYears(-50), true };
-                yield return new object[] { "TestFirstName", "TestLastname", "TestMiddlename", Guid.NewGuid(), Guid.Empty, DateOnly.FromDateTime(DateTime.UtcNow).AddYears(-50), true };
-                yield return new object[] { "TestFirstName", "TestLastname", "TestMiddlename", Guid.NewGuid(), Guid.NewGuid(), DateOnly.FromDateTime(DateTime.UtcNow).AddYears(-1024), true };
-                yield return new object?[] { "TestFirstName", "TestLastname", "TestMiddlename", Guid.NewGuid(), Guid.NewGuid(), DateOnly.FromDateTime(DateTime.UtcNow).AddYears(-50), null };
-                yield return new object[] { "TestFirstName", "TestLastname", "TestMiddlename", Guid.NewGuid(), Guid.NewGuid(), DateOnly.FromDateTime(DateTime.UtcNow).AddYears(-50), false };
-            }
+                Name = "TestName",
+                LastName = "TestLastname",
+                MiddleName = "TestMiddlename",
+                AccountId = Guid.NewGuid(),
+                PhotoId = Guid.NewGuid(),
+                DateOfBirth = DateOnly.FromDateTime(DateTime.UtcNow).AddYears(-50),
+                IsLinkedToAccount = false
+            };
+
+            var result = await _validator.TestValidateAsync(patient);
+
+            result.ShouldNotHaveValidationErrorFor(d => d.Name);
+            result.ShouldNotHaveValidationErrorFor(d => d.LastName);
+            result.ShouldNotHaveValidationErrorFor(d => d.MiddleName);
+            result.ShouldNotHaveValidationErrorFor(d => d.AccountId);
+            result.ShouldNotHaveValidationErrorFor(d => d.PhotoId);
+            result.ShouldNotHaveValidationErrorFor(d => d.DateOfBirth);
+            result.ShouldHaveValidationErrorFor(d => d.IsLinkedToAccount);
+        }
+
+        [Fact]
+        public async Task Validate_WithNullAccountId_ShouldNotValidate()
+        {
+            PatientForCreationDto patient = new()
+            {
+                Name = "TestName",
+                LastName = "TestLastname",
+                MiddleName = "TestMiddlename",
+                AccountId = null,
+                PhotoId = Guid.NewGuid(),
+                DateOfBirth = DateOnly.FromDateTime(DateTime.UtcNow).AddYears(-50),
+                IsLinkedToAccount = true
+            };
+
+            var result = await _validator.TestValidateAsync(patient);
+
+            result.ShouldNotHaveValidationErrorFor(d => d.Name);
+            result.ShouldNotHaveValidationErrorFor(d => d.LastName);
+            result.ShouldNotHaveValidationErrorFor(d => d.MiddleName);
+            result.ShouldNotHaveValidationErrorFor(d => d.AccountId);
+            result.ShouldNotHaveValidationErrorFor(d => d.PhotoId);
+            result.ShouldNotHaveValidationErrorFor(d => d.DateOfBirth);
+            result.ShouldHaveValidationErrorFor(d => d.IsLinkedToAccount);
         }
     }
 }

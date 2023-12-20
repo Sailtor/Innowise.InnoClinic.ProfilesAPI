@@ -7,7 +7,7 @@ using Persistence.Repositories;
 
 namespace Tests.Infrastructure.Persistence.Repositories
 {
-    public class ReceptionistRepositoryTests : IDisposable
+    public class ReceptionistRepositoryTests
     {
         private readonly DbContextOptions<RepositoryDbContext> _contextOptions;
         public ReceptionistRepositoryTests()
@@ -25,20 +25,23 @@ namespace Tests.Infrastructure.Persistence.Repositories
         [Fact]
         public async Task GetAllAsync_ActionExecutes_ReturnsReceptionists()
         {
-            List<Receptionist> patients = GenerateRandomReceptionists(3);
+            List<Receptionist> receptionists = GenerateRandomReceptionists(3);
 
             using (var context = new RepositoryDbContext(_contextOptions))
             {
-                context.Profiles.AddRange(patients);
+                context.Profiles.AddRange(receptionists);
                 context.SaveChanges();
             }
 
             using (var context = new RepositoryDbContext(_contextOptions))
             {
                 ReceptionistRepository receptionistRepository = new(context);
-                var recievedReceptionists = await receptionistRepository.GetAllAsync(cancellationToken: default);
+                var recievedReceptionists = (await receptionistRepository.GetAllAsync(cancellationToken: default)).ToList();
 
-                recievedReceptionists.Count().Should().Be(3, "because we put 3 receptionists in the collection");
+                recievedReceptionists.Count.Should().Be(receptionists.Count, "because we put 3 receptionists in the collection");
+                recievedReceptionists[0].Should().BeEquivalentTo(receptionists[0]);
+                recievedReceptionists[1].Should().BeEquivalentTo(receptionists[1]);
+                recievedReceptionists[2].Should().BeEquivalentTo(receptionists[2]);
             }
         }
 
@@ -59,7 +62,8 @@ namespace Tests.Infrastructure.Persistence.Repositories
                 ReceptionistRepository receptionistRepository = new(context);
                 var recievedReceptionist = await receptionistRepository.GetByIdAsync(receptionistId, cancellationToken: default);
 
-                recievedReceptionist.Should().NotBe(null, "because we put this receptionist in the collection");
+                recievedReceptionist.Should().NotBeNull("because we put this receptionist in the collection");
+                recievedReceptionist.Should().BeEquivalentTo(receptionists[0]);
             }
         }
 
@@ -87,7 +91,7 @@ namespace Tests.Infrastructure.Persistence.Repositories
                 receptionistRepository.Update(receptionistForUpdate);
                 var updatedReceptionist = await receptionistRepository.GetByIdAsync(receptionistForUpdate.Id);
 
-                updatedReceptionist.Should().NotBe(null, "because we put receptionist with this id in the collection");
+                updatedReceptionist.Should().NotBeNull("because we put receptionist with this id in the collection");
                 updatedReceptionist.Name.Should().Be("TestName", "because we changed receptionist name");
                 updatedReceptionist.MiddleName.Should().Be("TestMiddlename", "because we changed receptionist middlename");
                 updatedReceptionist.LastName.Should().Be("TestLastName", "because we changed receptionist last name");
@@ -112,9 +116,13 @@ namespace Tests.Infrastructure.Persistence.Repositories
                 ReceptionistRepository receptionistRepository = new(context);
                 await receptionistRepository.AddAsync(newReceptionist.First());
                 await context.SaveChangesAsync();
-                var receptionistsInRepository = await receptionistRepository.GetAllAsync(cancellationToken: default);
+                var receptionistsInRepository = (await receptionistRepository.GetAllAsync(cancellationToken: default)).ToList();
 
-                receptionistsInRepository.Count().Should().Be(4, "because we added new receptionist to database");
+                receptionistsInRepository.Count.Should().Be(receptionists.Count + 1, "because we added new receptionist to database");
+                receptionistsInRepository[0].Should().BeEquivalentTo(receptionists[0]);
+                receptionistsInRepository[1].Should().BeEquivalentTo(receptionists[1]);
+                receptionistsInRepository[2].Should().BeEquivalentTo(receptionists[2]);
+                receptionistsInRepository[3].Should().BeEquivalentTo(newReceptionist.First());
             }
         }
 
@@ -129,7 +137,7 @@ namespace Tests.Infrastructure.Persistence.Repositories
                 context.SaveChanges();
             }
 
-            var receptionistForRemoval = receptionists[1];
+            var receptionistForRemoval = receptionists[2];
 
             using (var context = new RepositoryDbContext(_contextOptions))
             {
@@ -137,17 +145,12 @@ namespace Tests.Infrastructure.Persistence.Repositories
 
                 receptionistRepository.Remove(receptionistForRemoval);
                 await context.SaveChangesAsync();
-                var receptionistsInRepository = await receptionistRepository.GetAllAsync(cancellationToken: default);
+                var receptionistsInRepository = (await receptionistRepository.GetAllAsync(cancellationToken: default)).ToList();
 
-                receptionistsInRepository.Count().Should().Be(2, "because we deleted 1 receptionist from database");
+                receptionistsInRepository.Count().Should().Be(receptionists.Count - 1, "because we deleted 1 receptionist from database");
+                receptionistsInRepository[0].Should().BeEquivalentTo(receptionists[0]);
+                receptionistsInRepository[1].Should().BeEquivalentTo(receptionists[1]);
             }
-        }
-
-        public void Dispose()
-        {
-            using var context = new RepositoryDbContext(_contextOptions);
-            context.Database.EnsureDeleted(); //ensure deleting db on every test
-            context.SaveChanges();
         }
 
         private static List<Receptionist> GenerateRandomReceptionists(int count)

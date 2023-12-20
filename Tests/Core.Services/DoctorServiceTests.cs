@@ -18,7 +18,7 @@ using ValidationException = FluentValidation.ValidationException;
 
 namespace Tests.Core.Services
 {
-    public class DoctorServiceTests : IDisposable
+    public class DoctorServiceTests
     {
         private readonly IMapper _mapper;
         private readonly DbContextOptions<RepositoryDbContext> _contextOptions;
@@ -37,7 +37,6 @@ namespace Tests.Core.Services
             var context = new RepositoryDbContext(_contextOptions);
             context.Database.EnsureDeleted();
             context.Database.EnsureCreated();
-            context.SaveChanges();
 
             _mapper = mapper;
             _repositoryManager = new RepositoryManager(context);
@@ -58,9 +57,13 @@ namespace Tests.Core.Services
             await _repositoryManager.UnitOfWork.SaveChangesAsync();
 
             DoctorService doctorService = new(_repositoryManager, _mapper, _validatorManager, _publishEndpoint.Object);
-            var recievedDoctors = await doctorService.GetAllAsync(cancellationToken: default);
+            var recievedDoctors = (await doctorService.GetAllAsync(cancellationToken: default)).ToList();
 
-            recievedDoctors.Count().Should().Be(3, "because we put 3 items in the collection");
+            recievedDoctors.Count.Should().Be(doctors.Count, "because we put 3 items in the collection");
+            recievedDoctors[0].Should().BeEquivalentTo(doctors[0], options => options.ExcludingMissingMembers());
+            recievedDoctors[1].Should().BeEquivalentTo(doctors[1], options => options.ExcludingMissingMembers());
+            recievedDoctors[2].Should().BeEquivalentTo(doctors[2], options => options.ExcludingMissingMembers());
+
         }
 
         [Fact]
@@ -76,11 +79,11 @@ namespace Tests.Core.Services
 
             var doctorId = doctors[0].Id;
 
-
             DoctorService doctorService = new(_repositoryManager, _mapper, _validatorManager, _publishEndpoint.Object);
             var recievedDoctor = await doctorService.GetByIdAsync(doctorId, cancellationToken: default);
 
-            recievedDoctor.Should().NotBe(null, "because we put this doctor in the collection");
+            recievedDoctor.Should().NotBeNull("because we put this doctor in the collection");
+            recievedDoctor.Should().BeEquivalentTo(doctors[0], options => options.ExcludingMissingMembers());
         }
 
         [Fact]
@@ -137,7 +140,7 @@ namespace Tests.Core.Services
 
             _publishEndpoint.Verify(pe => pe.Publish<DoctorNameChanged>(It.IsAny<object>(), It.IsAny<CancellationToken>()), "Method didn't publish message to message queue");
 
-            updatedDoctor.Should().NotBe(null, "because we put doctor with this id in the collection");
+            updatedDoctor.Should().NotBeNull("because we put doctor with this id in the collection");
             updatedDoctor.Name.Should().Be("TestName", "because we changed doctor name");
             updatedDoctor.MiddleName.Should().Be("TestMiddlename", "because we changed doctor middlename");
             updatedDoctor.LastName.Should().Be("TestLastName", "because we changed doctor last name");
@@ -203,9 +206,9 @@ namespace Tests.Core.Services
             await doctorService.Invoking(async (ds) => createdDoctor = await ds.CreateAsync(doctorForCreationDto, cancellationToken: default)).Should().NotThrowAsync<ValidationException>();
             var doctorsInDatabase = await doctorService.GetAllAsync(cancellationToken: default);
 
-            doctorsInDatabase.Count().Should().Be(4, "because we added new doctor to database");
-
-            createdDoctor.Should().NotBe(null, "because we put doctor with this id in the collection");
+            doctorsInDatabase.Count().Should().Be(doctors.Count + 1, "because we added new doctor to database");
+            createdDoctor.Should().NotBeNull("because we put doctor with this id in the collection");
+            createdDoctor.Should().BeEquivalentTo(doctorForCreationDto, options => options.ExcludingMissingMembers());
         }
 
         [Fact]
@@ -254,15 +257,9 @@ namespace Tests.Core.Services
             await doctorService.Invoking(ds => ds.ChangeDoctorStatusAsync(doctorId, DoctorStatus.AtWork, cancellationToken: default)).Should().NotThrowAsync();
             var updatedDoctor = await doctorService.GetByIdAsync(doctorId);
 
-            updatedDoctor.Should().NotBe(null, "because we put doctor with this id in the collection");
+            updatedDoctor.Should().NotBeNull("because we put doctor with this id in the collection");
             updatedDoctor.Status.Should().Be(DoctorStatus.AtWork, "because we changed doctor status");
-        }
-
-        public void Dispose()
-        {
-            using var context = new RepositoryDbContext(_contextOptions);
-            context.Database.EnsureDeleted(); //ensure deleting db after every test
-            context.SaveChanges();
+            updatedDoctor.Should().BeEquivalentTo(doctors[0], options => options.ExcludingMissingMembers());
         }
 
         private static List<Doctor> GenerateRandomDoctors(int count)

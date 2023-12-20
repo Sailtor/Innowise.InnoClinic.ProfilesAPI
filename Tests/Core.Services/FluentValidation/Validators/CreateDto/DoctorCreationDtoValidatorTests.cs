@@ -33,51 +33,64 @@ namespace Tests.Core.Services.FluentValidation.Validators.CreateDto
             result.ShouldNotHaveAnyValidationErrors();
         }
 
-        [Theory, MemberData(nameof(InvalidDoctors))]
-        public async Task Validate_WithInvalidModel_ShouldNotValidate(
-            string Name,
-            string LastName,
-            string Middlename,
-            Guid AccountId,
-            Guid PhotoId,
-            DateOnly DateOfBirth,
-            Guid SpecializationId,
-            Guid OfficeId,
-            int CareerStartYear,
-            DoctorStatus Status)
+        [Fact]
+        public async Task Validate_WithInvalidModel_ShouldNotValidate()
         {
-            var doctor = new DoctorForCreationDto()
+            DoctorForCreationDto doctor = new()
             {
-                Name = Name,
-                LastName = LastName,
-                MiddleName = Middlename,
-                AccountId = AccountId,
-                PhotoId = PhotoId,
-                DateOfBirth = DateOfBirth,
-                SpecializationId = SpecializationId,
-                OfficeId = OfficeId,
-                CareerStartYear = CareerStartYear,
-                Status = Status
+                Name = "",
+                LastName = "",
+                MiddleName = "n",
+                AccountId = Guid.Empty,
+                PhotoId = Guid.Empty,
+                DateOfBirth = DateOnly.FromDateTime(DateTime.UtcNow).AddYears(-1024),
+                SpecializationId = Guid.Empty,
+                OfficeId = Guid.Empty,
+                CareerStartYear = DateTime.UtcNow.Year - 1024,
+                Status = (DoctorStatus)14
             };
             var result = await _validator.TestValidateAsync(doctor);
-            result.ShouldHaveAnyValidationError();
+
+            result.ShouldHaveValidationErrorFor(d => d.Name);
+            result.ShouldHaveValidationErrorFor(d => d.LastName);
+            result.ShouldHaveValidationErrorFor(d => d.MiddleName);
+            result.ShouldHaveValidationErrorFor(d => d.AccountId);
+            result.ShouldHaveValidationErrorFor(d => d.PhotoId);
+            result.ShouldHaveValidationErrorFor(d => d.DateOfBirth);
+            result.ShouldHaveValidationErrorFor(d => d.SpecializationId);
+            result.ShouldHaveValidationErrorFor(d => d.OfficeId);
+            result.ShouldHaveValidationErrorFor(d => d.CareerStartYear);
+            result.ShouldHaveValidationErrorFor(d => d.Status);
         }
 
-        public static IEnumerable<object[]> InvalidDoctors
+        [Fact]
+        public async Task Validate_WithInvalidCareerStartYear_ShouldNotValidate()
         {
-            get
+            DoctorForCreationDto doctor = new()
             {
-                yield return new object[] { "", "TestLastname", "TestMiddlename", Guid.NewGuid(), Guid.NewGuid(), DateOnly.FromDateTime(DateTime.UtcNow).AddYears(-50), Guid.NewGuid(), Guid.NewGuid(), DateTime.UtcNow.Year - 20, DoctorStatus.AtWork };
-                yield return new object[] { "TestFirstName", "", "TestMiddlename", Guid.NewGuid(), Guid.NewGuid(), DateOnly.FromDateTime(DateTime.UtcNow).AddYears(-50), Guid.NewGuid(), Guid.NewGuid(), DateTime.UtcNow.Year - 20, DoctorStatus.AtWork };
-                yield return new object[] { "TestFirstName", "TestLastname", "", Guid.NewGuid(), Guid.NewGuid(), DateOnly.FromDateTime(DateTime.UtcNow).AddYears(-50), Guid.NewGuid(), Guid.NewGuid(), DateTime.UtcNow.Year - 20, DoctorStatus.AtWork };
-                yield return new object[] { "TestFirstName", "TestLastname", "TestMiddlename", Guid.Empty, Guid.NewGuid(), DateOnly.FromDateTime(DateTime.UtcNow).AddYears(-50), Guid.NewGuid(), Guid.NewGuid(), DateTime.UtcNow.Year - 20, DoctorStatus.AtWork };
-                yield return new object[] { "TestFirstName", "TestLastname", "TestMiddlename", Guid.NewGuid(), Guid.Empty, DateOnly.FromDateTime(DateTime.UtcNow).AddYears(-50), Guid.NewGuid(), Guid.NewGuid(), DateTime.UtcNow.Year - 20, DoctorStatus.AtWork };
-                yield return new object[] { "TestFirstName", "TestLastname", "TestMiddlename", Guid.NewGuid(), Guid.NewGuid(), DateOnly.FromDateTime(DateTime.UtcNow).AddYears(-2000), Guid.NewGuid(), Guid.NewGuid(), DateTime.UtcNow.Year - 20, DoctorStatus.AtWork };
-                yield return new object[] { "TestFirstName", "TestLastname", "TestMiddlename", Guid.NewGuid(), Guid.NewGuid(), DateOnly.FromDateTime(DateTime.UtcNow).AddYears(-50), Guid.Empty, Guid.NewGuid(), DateTime.UtcNow.Year - 20, DoctorStatus.AtWork };
-                yield return new object[] { "TestFirstName", "TestLastname", "TestMiddlename", Guid.NewGuid(), Guid.NewGuid(), DateOnly.FromDateTime(DateTime.UtcNow).AddYears(-50), Guid.NewGuid(), Guid.Empty, DateTime.UtcNow.Year - 20, DoctorStatus.AtWork };
-                yield return new object[] { "TestFirstName", "TestLastname", "TestMiddlename", Guid.NewGuid(), Guid.NewGuid(), DateOnly.FromDateTime(DateTime.UtcNow).AddYears(-50), Guid.NewGuid(), Guid.NewGuid(), DateTime.UtcNow.Year - 2000, DoctorStatus.AtWork };
-                yield return new object[] { "TestFirstName", "TestLastname", "TestMiddlename", Guid.NewGuid(), Guid.NewGuid(), DateOnly.FromDateTime(DateTime.UtcNow).AddYears(-50), Guid.NewGuid(), Guid.NewGuid(), DateTime.UtcNow.Year - 20, 14 };
-            }
+                Name = "TestName",
+                LastName = "TestLastname",
+                MiddleName = "TestMiddlename",
+                AccountId = Guid.NewGuid(),
+                PhotoId = Guid.NewGuid(),
+                DateOfBirth = DateOnly.FromDateTime(DateTime.UtcNow).AddYears(-50),
+                SpecializationId = Guid.NewGuid(),
+                OfficeId = Guid.NewGuid(),
+                CareerStartYear = DateTime.UtcNow.Year - 51,
+                Status = DoctorStatus.AtWork
+            };
+            var result = await _validator.TestValidateAsync(doctor);
+
+            result.ShouldNotHaveValidationErrorFor(d => d.Name);
+            result.ShouldNotHaveValidationErrorFor(d => d.LastName);
+            result.ShouldNotHaveValidationErrorFor(d => d.MiddleName);
+            result.ShouldNotHaveValidationErrorFor(d => d.AccountId);
+            result.ShouldNotHaveValidationErrorFor(d => d.PhotoId);
+            result.ShouldNotHaveValidationErrorFor(d => d.DateOfBirth);
+            result.ShouldNotHaveValidationErrorFor(d => d.SpecializationId);
+            result.ShouldNotHaveValidationErrorFor(d => d.OfficeId);
+            result.ShouldHaveValidationErrorFor(d => d.CareerStartYear);
+            result.ShouldNotHaveValidationErrorFor(d => d.Status);
         }
     }
 }

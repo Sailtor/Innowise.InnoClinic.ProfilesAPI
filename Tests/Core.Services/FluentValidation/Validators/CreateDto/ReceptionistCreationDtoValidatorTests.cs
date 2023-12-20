@@ -28,40 +28,25 @@ namespace Tests.Core.Services.FluentValidation.Validators.CreateDto
             result.ShouldNotHaveAnyValidationErrors();
         }
 
-        [Theory, MemberData(nameof(InvalidReceptionists))]
-        public async Task Validate_WithInvalidModel_ShouldNotValidate(
-            string Name,
-            string LastName,
-            string Middlename,
-            Guid AccountId,
-            Guid PhotoId,
-            Guid OfficeId
-            )
+        [Fact]
+        public async Task Validate_WithInvalidModel_ShouldNotValidate()
         {
-            var receptionist = new ReceptionistForCreationDto()
+            ReceptionistForCreationDto receptionist = new()
             {
-                Name = Name,
-                LastName = LastName,
-                MiddleName = Middlename,
-                AccountId = AccountId,
-                PhotoId = PhotoId,
-                OfficeId = OfficeId,
+                Name = "",
+                LastName = "",
+                MiddleName = "m",
+                AccountId = Guid.Empty,
+                PhotoId = Guid.Empty,
+                OfficeId = Guid.Empty,
             };
             var result = await _validator.TestValidateAsync(receptionist);
-            result.ShouldHaveAnyValidationError();
-        }
-
-        public static IEnumerable<object[]> InvalidReceptionists
-        {
-            get
-            {
-                yield return new object[] { "", "TestLastname", "TestMiddlename", Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid() };
-                yield return new object[] { "TestFirstName", "", "TestMiddlename", Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid() };
-                yield return new object[] { "TestFirstName", "TestLastname", "", Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid() };
-                yield return new object[] { "TestFirstName", "TestLastname", "TestMiddlename", Guid.Empty, Guid.NewGuid(), Guid.NewGuid() };
-                yield return new object[] { "TestFirstName", "TestLastname", "TestMiddlename", Guid.NewGuid(), Guid.Empty, Guid.NewGuid() };
-                yield return new object[] { "TestFirstName", "TestLastname", "TestMiddlename", Guid.NewGuid(), Guid.NewGuid(), Guid.Empty };
-            }
+            result.ShouldHaveValidationErrorFor(d => d.Name);
+            result.ShouldHaveValidationErrorFor(d => d.LastName);
+            result.ShouldHaveValidationErrorFor(d => d.MiddleName);
+            result.ShouldHaveValidationErrorFor(d => d.AccountId);
+            result.ShouldHaveValidationErrorFor(d => d.PhotoId);
+            result.ShouldHaveValidationErrorFor(d => d.OfficeId);
         }
     }
 }

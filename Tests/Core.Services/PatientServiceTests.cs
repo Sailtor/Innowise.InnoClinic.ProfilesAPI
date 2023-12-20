@@ -15,7 +15,7 @@ using ValidationException = FluentValidation.ValidationException;
 
 namespace Tests.Core.Services
 {
-    public class PatientServiceTests : IDisposable
+    public class PatientServiceTests
     {
         private readonly IMapper _mapper;
         private readonly DbContextOptions<RepositoryDbContext> _contextOptions;
@@ -32,7 +32,6 @@ namespace Tests.Core.Services
             var context = new RepositoryDbContext(_contextOptions);
             context.Database.EnsureDeleted();
             context.Database.EnsureCreated();
-            context.SaveChanges();
 
             _mapper = mapper;
             _repositoryManager = new RepositoryManager(context);
@@ -51,9 +50,12 @@ namespace Tests.Core.Services
             await _repositoryManager.UnitOfWork.SaveChangesAsync();
 
             PatientService patientService = new(_repositoryManager, _mapper, _validatorManager);
-            var recievedPatients = await patientService.GetAllAsync(cancellationToken: default);
+            var recievedPatients = (await patientService.GetAllAsync(cancellationToken: default)).ToList();
 
-            recievedPatients.Count().Should().Be(3, "because we put 3 patients in database");
+            recievedPatients.Count.Should().Be(patients.Count, "because we put 3 patients in database");
+            recievedPatients[0].Should().BeEquivalentTo(patients[0], options => options.ExcludingMissingMembers());
+            recievedPatients[1].Should().BeEquivalentTo(patients[1], options => options.ExcludingMissingMembers());
+            recievedPatients[2].Should().BeEquivalentTo(patients[2], options => options.ExcludingMissingMembers());
         }
 
         [Fact]
@@ -73,7 +75,8 @@ namespace Tests.Core.Services
 
             var recievedPatient = await patientService.GetByIdAsync(patientId, cancellationToken: default);
 
-            recievedPatient.Should().NotBe(null, "because we put this patient in the collection");
+            recievedPatient.Should().NotBeNull("because we put this patient in the collection");
+            recievedPatient.Should().BeEquivalentTo(patients[0], options => options.ExcludingMissingMembers());
         }
 
         [Fact]
@@ -124,8 +127,9 @@ namespace Tests.Core.Services
             await patientService.Invoking(async (ds) => createdPatient = await ds.CreateAsync(patientForCreationDto, cancellationToken: default)).Should().NotThrowAsync<ValidationException>();
             var patientsInDatabase = await patientService.GetAllAsync(cancellationToken: default);
 
-            patientsInDatabase.Count().Should().Be(4, "because we added new patient to database");
-            createdPatient.Should().NotBe(null, "because we put patient with this id in the collection");
+            patientsInDatabase.Count().Should().Be(patients.Count + 1, "because we added new patient to database");
+            createdPatient.Should().NotBeNull("because we put patient with this id in the collection");
+            createdPatient.Should().BeEquivalentTo(patientForCreationDto, options => options.ExcludingMissingMembers());
         }
 
         [Fact]
@@ -183,7 +187,7 @@ namespace Tests.Core.Services
 
             await patientService.Invoking(y => y.UpdateAsync(patientId, patientForUpdate, cancellationToken: default)).Should().NotThrowAsync<ValidationException>();
 
-            updatedPatient.Should().NotBe(null, "because we put patient with this id in the collection");
+            updatedPatient.Should().NotBeNull("because we put patient with this id in the collection");
             updatedPatient.Name.Should().Be("TestName", "because we changed patient name");
             updatedPatient.MiddleName.Should().Be("TestMiddleName", "because we changed patient middlename");
             updatedPatient.LastName.Should().Be("TestLastName", "because we changed patient last name");
@@ -252,15 +256,17 @@ namespace Tests.Core.Services
             }
             await _repositoryManager.UnitOfWork.SaveChangesAsync();
 
-            var patientId = patients[0].Id;
+            var patientId = patients[2].Id;
 
             PatientService patientService = new(_repositoryManager, _mapper, _validatorManager);
 
             await patientService.Invoking(ds => ds.DeleteAsync(patientId, cancellationToken: default)).Should().NotThrowAsync<ProfileNotFoundException>();
 
-            var patientsInDatabase = await patientService.GetAllAsync(cancellationToken: default);
+            var patientsInDatabase = (await patientService.GetAllAsync(cancellationToken: default)).ToList();
 
-            patientsInDatabase.Count().Should().Be(2, "because we deleted patient from database");
+            patientsInDatabase.Count().Should().Be(patients.Count - 1, "because we deleted patient from database");
+            patientsInDatabase[0].Should().BeEquivalentTo(patients[0], options => options.ExcludingMissingMembers());
+            patientsInDatabase[1].Should().BeEquivalentTo(patients[1], options => options.ExcludingMissingMembers());
         }
 
         [Fact]
@@ -321,13 +327,6 @@ namespace Tests.Core.Services
             PatientService patientService = new(_repositoryManager, _mapper, _validatorManager);
 
             await patientService.Invoking(ds => ds.LinkUserProfileToAccountAsync(patientId, userAccountId, cancellationToken: default)).Should().ThrowAsync<ProfileNotFoundException>();
-        }
-
-        public void Dispose()
-        {
-            using var context = new RepositoryDbContext(_contextOptions);
-            context.Database.EnsureDeleted(); //ensure deleting db after every test
-            context.SaveChanges();
         }
 
         private static List<Patient> GenerateRandomPatients(int count)

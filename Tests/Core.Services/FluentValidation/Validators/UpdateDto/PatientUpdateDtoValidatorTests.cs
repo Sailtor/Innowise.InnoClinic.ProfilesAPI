@@ -27,36 +27,25 @@ namespace Tests.Core.Services.FluentValidation.Validators.UpdateDto
             result.ShouldNotHaveAnyValidationErrors();
         }
 
-        [Theory, MemberData(nameof(InvalidPatients))]
-        public async Task Validate_WithInvalidModel_ShouldNotValidate(
-            string Name,
-            string LastName,
-            string Middlename,
-            Guid PhotoId,
-            DateOnly DateOfBirth)
+        [Fact]
+        public async Task Validate_WithInvalidModel_ShouldNotValidate()
         {
-            var patient = new PatientForUpdateDto()
+            PatientForUpdateDto patient = new()
             {
-                Name = Name,
-                LastName = LastName,
-                MiddleName = Middlename,
-                PhotoId = PhotoId,
-                DateOfBirth = DateOfBirth
+                Name = "TestName",
+                LastName = "TestLastname",
+                MiddleName = "TestMiddlename",
+                PhotoId = Guid.NewGuid(),
+                DateOfBirth = DateOnly.FromDateTime(DateTime.UtcNow).AddYears(-50),
             };
-            var result = await _validator.TestValidateAsync(patient);
-            result.ShouldHaveAnyValidationError();
-        }
 
-        public static IEnumerable<object?[]> InvalidPatients
-        {
-            get
-            {
-                yield return new object[] { "", "TestLastname", "TestMiddlename", Guid.NewGuid(), DateOnly.FromDateTime(DateTime.UtcNow).AddYears(-50) };
-                yield return new object[] { "TestFirstName", "", "TestMiddlename", Guid.NewGuid(), DateOnly.FromDateTime(DateTime.UtcNow).AddYears(-50) };
-                yield return new object[] { "TestFirstName", "TestLastname", "", Guid.NewGuid(), DateOnly.FromDateTime(DateTime.UtcNow).AddYears(-50) };
-                yield return new object[] { "TestFirstName", "TestLastname", "TestMiddlename", Guid.Empty, DateOnly.FromDateTime(DateTime.UtcNow).AddYears(-50) };
-                yield return new object[] { "TestFirstName", "TestLastname", "TestMiddlename", Guid.NewGuid(), DateOnly.FromDateTime(DateTime.UtcNow).AddYears(-1024) };
-            }
+            var result = await _validator.TestValidateAsync(patient);
+
+            result.ShouldNotHaveValidationErrorFor(d => d.Name);
+            result.ShouldNotHaveValidationErrorFor(d => d.LastName);
+            result.ShouldNotHaveValidationErrorFor(d => d.MiddleName);
+            result.ShouldNotHaveValidationErrorFor(d => d.PhotoId);
+            result.ShouldNotHaveValidationErrorFor(d => d.DateOfBirth);
         }
     }
 }

@@ -14,7 +14,7 @@ using ValidationException = FluentValidation.ValidationException;
 
 namespace Tests.Core.Services
 {
-    public class ReceptionistServiceTests : IDisposable
+    public class ReceptionistServiceTests
     {
         private readonly IMapper _mapper;
         private readonly DbContextOptions<RepositoryDbContext> _contextOptions;
@@ -31,7 +31,6 @@ namespace Tests.Core.Services
             var context = new RepositoryDbContext(_contextOptions);
             context.Database.EnsureDeleted();
             context.Database.EnsureCreated();
-            context.SaveChanges();
 
             _mapper = mapper;
             _repositoryManager = new RepositoryManager(context);
@@ -50,9 +49,12 @@ namespace Tests.Core.Services
             await _repositoryManager.UnitOfWork.SaveChangesAsync();
 
             ReceptionistService receptionistService = new(_repositoryManager, _mapper, _validatorManager);
-            var recievedReceptionists = await receptionistService.GetAllAsync(cancellationToken: default);
+            var recievedReceptionists = (await receptionistService.GetAllAsync(cancellationToken: default)).ToList();
 
-            recievedReceptionists.Count().Should().Be(3, "because we put 3 receptionists in database");
+            recievedReceptionists.Count().Should().Be(receptionists.Count, "because we put 3 receptionists in database");
+            recievedReceptionists[0].Should().BeEquivalentTo(receptionists[0], options => options.ExcludingMissingMembers());
+            recievedReceptionists[1].Should().BeEquivalentTo(receptionists[1], options => options.ExcludingMissingMembers());
+            recievedReceptionists[2].Should().BeEquivalentTo(receptionists[2], options => options.ExcludingMissingMembers());
         }
 
         [Fact]
@@ -72,7 +74,8 @@ namespace Tests.Core.Services
 
             var recievedReceptionist = await receptionistService.GetByIdAsync(receptionistId, cancellationToken: default);
 
-            recievedReceptionist.Should().NotBe(null, "because we put this receptionist in the collection");
+            recievedReceptionist.Should().NotBeNull("because we put this receptionist in the collection");
+            recievedReceptionist.Should().BeEquivalentTo(receptionists[0], options => options.ExcludingMissingMembers());
         }
 
         [Fact]
@@ -119,10 +122,16 @@ namespace Tests.Core.Services
             ReceptionistForResponseDto? createdReceptionist = null;
 
             await receptionistService.Invoking(async (ds) => createdReceptionist = await ds.CreateAsync(receptionistForCreationDto, cancellationToken: default)).Should().NotThrowAsync<ValidationException>();
-            var receptionistsInDatabase = await receptionistService.GetAllAsync(cancellationToken: default);
+            var receptionistsInDatabase = (await receptionistService.GetAllAsync(cancellationToken: default)).ToList();
 
-            receptionistsInDatabase.Count().Should().Be(4, "because we added new receptionist to database");
-            createdReceptionist.Should().NotBe(null, "because we put receptionist with this id in the collection");
+            receptionistsInDatabase.Count().Should().Be(receptionists.Count + 1, "because we added new receptionist to database");
+            createdReceptionist.Should().NotBeNull("because we put receptionist with this id in the collection");
+
+            receptionistsInDatabase[0].Should().BeEquivalentTo(receptionists[0], options => options.ExcludingMissingMembers());
+            receptionistsInDatabase[1].Should().BeEquivalentTo(receptionists[1], options => options.ExcludingMissingMembers());
+            receptionistsInDatabase[2].Should().BeEquivalentTo(receptionists[2], options => options.ExcludingMissingMembers());
+            receptionistsInDatabase[3].Should().BeEquivalentTo(receptionistForCreationDto, options => options.ExcludingMissingMembers());
+
         }
 
         [Fact]
@@ -178,7 +187,7 @@ namespace Tests.Core.Services
 
             await receptionistService.Invoking(y => y.UpdateAsync(receptionistId, receptionistForUpdate, cancellationToken: default)).Should().NotThrowAsync<ValidationException>();
 
-            updatedReceptionist.Should().NotBe(null, "because we put receptionist with this id in the collection");
+            updatedReceptionist.Should().NotBeNull("because we put receptionist with this id in the collection");
             updatedReceptionist.Name.Should().Be("TestName", "because we changed receptionist name");
             updatedReceptionist.MiddleName.Should().Be("TestMiddlename", "because we changed receptionist middlename");
             updatedReceptionist.LastName.Should().Be("TestLastName", "because we changed receptionist last name");
@@ -247,15 +256,18 @@ namespace Tests.Core.Services
             }
             await _repositoryManager.UnitOfWork.SaveChangesAsync();
 
-            var receptionistId = receptionists[0].Id;
+            var receptionistId = receptionists[2].Id;
 
             ReceptionistService receptionistService = new(_repositoryManager, _mapper, _validatorManager);
 
             await receptionistService.Invoking(ds => ds.DeleteAsync(receptionistId, cancellationToken: default)).Should().NotThrowAsync<ProfileNotFoundException>();
 
-            var receptionistsInDatabase = await receptionistService.GetAllAsync(cancellationToken: default);
+            var receptionistsInDatabase = (await receptionistService.GetAllAsync(cancellationToken: default)).ToList();
 
-            receptionistsInDatabase.Count().Should().Be(2, "because we deleted receptionist from database");
+            receptionistsInDatabase.Count().Should().Be(receptionists.Count-1, "because we deleted receptionist from database");
+            receptionistsInDatabase[0].Should().BeEquivalentTo(receptionists[0], options => options.ExcludingMissingMembers());
+            receptionistsInDatabase[1].Should().BeEquivalentTo(receptionists[1], options => options.ExcludingMissingMembers());
+
         }
 
         [Fact]
@@ -272,13 +284,6 @@ namespace Tests.Core.Services
             ReceptionistService receptionistService = new(_repositoryManager, _mapper, _validatorManager);
 
             await receptionistService.Invoking(ds => ds.DeleteAsync(receptionistId, cancellationToken: default)).Should().ThrowAsync<ProfileNotFoundException>();
-        }
-
-        public void Dispose()
-        {
-            using var context = new RepositoryDbContext(_contextOptions);
-            context.Database.EnsureDeleted(); //ensure deleting db after every test
-            context.SaveChanges();
         }
 
         private static List<Receptionist> GenerateRandomReceptionists(int count)

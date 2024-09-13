@@ -74,7 +74,7 @@ namespace Services
                 Name = doctorForUpdateDto.Name,
                 Surname = doctorForUpdateDto.LastName,
                 Middlename = doctorForUpdateDto.MiddleName
-            });
+            }, cancellationToken);
         }
 
         public async Task ChangeDoctorStatusAsync(Guid doctorId, DoctorStatus status, CancellationToken cancellationToken = default)

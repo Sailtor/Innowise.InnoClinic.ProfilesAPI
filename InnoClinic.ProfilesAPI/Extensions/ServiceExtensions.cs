@@ -111,6 +111,17 @@ namespace InnoClinic.ProfilesAPI.Extensions
             });
         }
 
+        public static void ConfigureCORS(this IServiceCollection services, IConfiguration configuration)
+        {
+            services.AddCors(options =>
+            {
+                options.AddPolicy("CorsPolicy",
+                    builder => builder.WithOrigins($"{configuration["PatientClient"]}")
+                        .AllowAnyHeader() // allow 'Authentication' headers, et. al.
+                        .AllowAnyMethod()); // allow GET, SET, OPTIONS, et. al.
+            });
+        }
+
         /* --- CUSTOM MIDDLEWARE --- */
         public static void UseExceptionHandlerMiddleware(this IApplicationBuilder app)
         {

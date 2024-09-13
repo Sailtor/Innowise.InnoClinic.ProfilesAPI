@@ -21,6 +21,7 @@ try
     builder.Services.CofigureAuthorization();
     builder.Services.ConfigureOwnerAuthZPolicies();
     builder.Services.ConfigureRabbitMQConsumer();
+    builder.Services.ConfigureCORS(builder.Configuration);
 
     var app = builder.Build();
 
@@ -34,7 +35,8 @@ try
         app.UseSwaggerUI();
     }
 
-    /*add logging and exception handling middleware later*/
+    app.UseCors("CorsPolicy");
+
     app.UseHttpsRedirection();
 
     app.UseAuthentication();

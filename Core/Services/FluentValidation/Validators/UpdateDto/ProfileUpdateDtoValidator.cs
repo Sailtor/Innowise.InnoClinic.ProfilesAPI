@@ -8,10 +8,9 @@ namespace Services.FluentValidation.Validators.UpdateDto
     {
         public ProfileUpdateDtoValidator()
         {
-            ClassLevelCascadeMode = CascadeMode.Stop;
-            RuleFor(p => p.Name).NotEmpty().Length(2, 1024).WithErrorCode("Invalid first name");
-            RuleFor(p => p.LastName).NotEmpty().Length(2, 1024).WithErrorCode("Invalid last name");
-            RuleFor(p => p.MiddleName).Length(2, 1024).Unless(p => string.IsNullOrEmpty(p.MiddleName)).WithErrorCode("Invalid middle name");
+            RuleFor(p => p.Name).Length(2, 1024).WithErrorCode("Invalid first name");
+            RuleFor(p => p.LastName).Length(2, 1024).WithErrorCode("Invalid last name");
+            RuleFor(p => p.MiddleName).Length(2, 1024).Unless(p => p.MiddleName is null).WithErrorCode("Invalid middle name");
             RuleFor(p => p.PhotoId).Must(ValidateGuid).Unless(p => p.PhotoId is null).WithErrorCode("Invalid photoId");
         }
 
@@ -46,7 +45,7 @@ namespace Services.FluentValidation.Validators.UpdateDto
             int currentYear = DateTime.UtcNow.Year;
             int dobYear = date.Year;
 
-            if (dobYear <= currentYear && dobYear > currentYear - AllowedAge.Max)
+            if (dobYear <= currentYear && dobYear >= currentYear - AllowedAge.Max)
             {
                 return true;
             }
